@@ -1,2 +1,2 @@
-# Ev1_ESTRDATYPROC
-Repositorio para la Evidencia 1 de Estructuras de Datos y su Procesamiento - Equipo 6
+# EQUIPO 6 - ESTRDATYPROC
+Repositorio para las Evidencias y PIA de Estructuras de Datos y su Procesamiento - Equipo 6

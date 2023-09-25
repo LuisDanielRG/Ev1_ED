@@ -212,72 +212,88 @@ def ConsultasReportes():
             print("***** La nota no se encuentra en el sistema. *****")
             
     def ConsultaPorCliente():
-        rfc_clientes_ordenados = sorted(set(nota['rfc'] for nota in notas.values()))
+        # Opción 2.3 Consulta por cliente.
+        rfc_unicos = set() # Conjunto para almacenar RFC únicos, sin duplicidades.
+
+        for folio, nota in notas.items():
+            rfc = nota['rfc']
+            rfc_unicos.add(rfc)
         
-        print("\nRFCs disponibles:")
-        for i, rfc_cliente in enumerate(rfc_clientes_ordenados, start=1):
-            print(f"{i}. {rfc_cliente}")
-        
+        lista_rfc = sorted(list(rfc_unicos)) # Convierte el conjunto a una lista
+
         while True:
-         rfc_seleccionado = input("\nSeleccione el folio correspondiente al RFC a consultar (0 para cancelar): ")
-         if rfc_seleccionado == '0':
-            print("Cancelando consulta por cliente...")
-            return
-
-         try:
-            rfc_seleccionado = int(rfc_seleccionado)
-            if 1 <= rfc_seleccionado <= len(rfc_clientes_ordenados):
-                break
-            else:
-                print("***** ¡ERROR! Seleccione un folio válido. *****")
-         except ValueError:
-            print("***** ¡ERROR! Ingrese un número válido. *****")
+            print("\nRFC Disponbles para consultar:")
+            for i, rfc in enumerate(lista_rfc, start=1):
+                print(f"{i}. RFC: {rfc}")
             
-        rfc_cliente_consulta = rfc_clientes_ordenados[rfc_seleccionado - 1]
+            seleccion_rfc = input("\nIngresa el número correspondiente al RFC que deseas consultar: ")
 
-        # Filtra las notas por RFC del cliente seleccionado.
-        notas_cliente = [nota for nota in notas.values() if nota['rfc'] == rfc_cliente_consulta]
+            try:
+                seleccion = int(seleccion_rfc)
+                if 1 <= seleccion <= len(lista_rfc):
+                    rfc_a_consultar = lista_rfc[seleccion - 1]
+                    notas_cliente = [(folio, nota) for folio, nota in notas.items() if nota['rfc'] == rfc_a_consultar]
+                    notas_cliente_ordenadas = sorted(notas_cliente, key=lambda x: x[0])
 
-        if notas_cliente:
-            datos_por_cliente = []
+                    print(f"\nNOTAS PARA EL CLIENTE CON EL RFC {rfc_a_consultar}")
+                    montos_consultados = []
 
-            for folio, nota in enumerate(notas_cliente, start=1):
-                fecha = nota['fecha']
-                monto = nota['monto_a_pagar']
-            
-            datos_por_cliente.append([folio, fecha.strftime("%d/%m/%Y"), nota['cliente'], nota['correo'], f"${monto:.2f}"])
-        
-            promedio_monto= sum(nota['monto_a_pagar'] for nota in notas_cliente)/ len(notas_cliente)
-        
-            print(f"\nReporte de notas para el cliente con RFC{rfc_cliente_consulta}:")
-            tabla_por_cliente= tabulate(datos_por_cliente, headers=["Folio", "Fecha", "Nombre del cliente", "Correo del Cliente", "Monto a pagar"], tablefmt="grid")
-            print(tabla_por_cliente)
-        
-            print(f"\nMonto promedio: ${promedio_monto:.2f}")
-        
-            while True:
-                exportar_excel = input("\n¿Deseas exportar los datos a un archivo Excel [SI/NO]? ")
+                    for folio, nota in notas_cliente_ordenadas:
+                        fecha = nota['fecha']
+                        montos_consultados.append(nota['monto_a_pagar'])
 
-                if exportar_excel.upper() == "SI":
-                    notas_excel = f"{rfc_cliente_consulta}_{datetime.date.today().strftime('%d-%m-%Y')}.xlsx"
-
-                    libro_excel = openpyxl.Workbook()
-                    hoja_trabajo = libro_excel.active
-
-                    hoja_trabajo.append(["Folio", "Fecha", "Nombre", "Monto"])
-                    for dato in datos_por_cliente:
-                        hoja_trabajo.append(dato)
-
-                    libro_excel.save(notas_excel)
-                    print(f"\n El archivo '{notas_excel}' ha sido guardado correctamente.")
-                    break
-                elif exportar_excel.upper() == "NO":
-                    print("No se exportará ningún archivo.")
+                        print("\n\tDETALLE DE LAS NOTAS:")
+                        print("\t","- "*20)
+                        print(f"\t\tFolio                 : {folio}")
+                        print(f"\t\tFecha                 : {fecha.strftime('%d/%m/%Y')}")
+                        print(f"\t\tMonto a Pagar         : ${nota['monto_a_pagar']}")
+                        print("\t\tServicios:")
+                        for detalle in nota['detalle']:
+                            print(f"\t\t- Servicio            : {detalle['servicios']}")
+                            print(f"\t\t  Costo               : ${detalle['costo_servicio']}")
+                    
+                    montos_consultados_np = np.array(montos_consultados)
+                    prom_montos = np.mean(montos_consultados_np)
+                    print(f"\nPromedio de los montos de las notas consultadas:  ${prom_montos:.2f}")
                     break
                 else:
-                    print("***** ¡ERROR! Ingresa una respuesta válida (SI/NO). *****")
+                    print("**** ¡ERROR! Selección fue del rango. Ingresa un número válido.")
+            except Exception:
+                print("**** ¡ERROR! Dato no válido, debe ser un número. ****")
+
+        while True:
+            # Pregunta si desea exportar la información a un archivo de excel.
+            exportar_a_excel = input("\n¿Deseas exportar la información anterior a un archivo de excel [SI / NO] >> ")
+            if exportar_a_excel.upper() == "SI":
+                fecha_actual = datetime.date.today().strftime("%d-%m-%Y")
+                
+                libro_excel = openpyxl.Workbook()
+                hoja_trabajo = libro_excel.active
+
+                hoja_trabajo.append(["Folio", "Fecha", "Nombre del Cliente", "RFC del Cliente", "Correo del Cliente", "Monto a Pagar", "Detalle de Servicios"])
+
+                for folio, nota in notas_cliente_ordenadas:
+                    fecha = nota['fecha'].strftime("%d/%m/%Y")
+                    detalle_servicios = ""
+                    for detalle in nota['detalle']:
+                        detalle_servicios += f"{detalle['servicios']}: ${detalle['costo_servicio']}\n"
+                    hoja_trabajo.append([folio, fecha, nota['cliente'], nota['rfc'], nota['correo'], nota['monto_a_pagar'], detalle_servicios])
+
+                for row in hoja_trabajo.iter_rows(min_row=2, max_row=hoja_trabajo.max_row, min_col=7, max_col=7):
+                    for cell in row:
+                        cell.alignment = openpyxl.styles.Alignment(wrap_text=True)
+                
+                archivo_excel = f"{rfc_a_consultar}_{fecha_actual}.xlsx"
+                libro_excel.save(archivo_excel)
+                print(f"La información ha sido exportada con el nombre {archivo_excel}")
+                break
+            elif exportar_a_excel.upper() == "NO":
+                print("**** La información no fue exportada. ****")
+                break
+            else:
+                print("**** ¡ERROR! Ingresa una respuesta válida [SI / NO]. ****")
+                continue
                         
-    
     
     while True:
             # Submenú de consultas y reportes.
@@ -433,6 +449,20 @@ def RecuperarNota():
     else:
         print("***** El folio ingresado no corresponde a una nota cancelada. *****")
 
+def SalidaSistema():
+    # Opción 5. Salida del sistema.
+    while True:
+        confirmacion_salida = input("\n¿Estas seguro de salir del sistema [SI / NO]? >> ")
+        if confirmacion_salida.upper() == "SI":
+            print("Gracias por visitar este sistema. ¡Vuelva pronto!\n")
+            break
+        elif confirmacion_salida.upper() == "NO":
+            print("Volviendo al menú principal...")
+            break
+        else:
+            print("**** ¡ERROR! Ingresa una respuesta válida [SI / NO]. ****")
+            continue
+
 # Menú Principal
 import datetime
 import re
@@ -479,13 +509,7 @@ while True:
         elif opcion == 4:
             RecuperarNota()
         elif opcion == 5:
-            # Opción 5. Salida del sistema.
-            confirmacion_salida = input("\n¿Estas seguro de salir del sistema [SI / NO]? >> ")
-            if confirmacion_salida.upper() == "SI":
-                print("Gracias por visitar este sistema. ¡Vuelva pronto!\n")
-                break
-            else:
-                print("Volviendo al menú principal...")
-                continue
+            SalidaSistema()
+            break
         else:
             print("**** Opción no válida. ****")

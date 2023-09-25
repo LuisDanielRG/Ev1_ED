@@ -84,7 +84,7 @@ def RegistroNotas():
             costo = input("\nIngrese el costo del servicio: ")
                 
             # Revisa que el dato ingresado coincida con el patrón, si coincide, entonces lo convierte a tipo de dato float, después de eso valida que sea mayor a 0.
-            if re.match(r'^\d+(\.\d{2})?$', costo):
+            if re.match(r'^\d+(\.\d{0,2})?$', costo):
                 costo_servicio = float(costo)
                 if costo_servicio > 0:
                     break
@@ -160,13 +160,13 @@ def ConsultasReportes():
                 monto = nota['monto_a_pagar']
                 total_monto += monto
 
-                datos_por_periodo.append([folio, fecha.strftime("%d/%m/%Y"), nota['cliente'], f"${monto:.2f}"])
+                datos_por_periodo.append([folio, fecha.strftime("%d/%m/%Y"), nota['cliente'], nota['rfc'], nota['correo'], f"${monto:.2f}"])
 
             promedio_monto = total_monto / len(notas_periodo)
 
             # Muestra de forma tabular las notas encontradas en el período solicitado.
             print("\nREPORTE DE NOTAS POR PERÍODO:")
-            tabla_por_periodo = tabulate(datos_por_periodo, headers=["Folio", "Fecha", "Nombre del Cliente", "Monto a Pagar"], tablefmt="grid")
+            tabla_por_periodo = tabulate(datos_por_periodo, headers=["Folio", "Fecha", "Nombre del Cliente", "RFC del Cliente", "Correo del Cliente", "Monto a Pagar"], tablefmt="grid")
             print(tabla_por_periodo)
 
             print(f"\nMonto Promedio: ${promedio_monto:.2f}")
@@ -199,12 +199,12 @@ def ConsultasReportes():
 
             for detalle in nota['detalle']:
                 if not datos_por_folio:
-                    datos_por_folio.append([folio_a_consultar, fecha.strftime("%d/%m/%Y"), nota['cliente'], detalle['servicios'], f"${detalle['costo_servicio']:.2f}", f"${nota['monto_a_pagar']:.2f}"])
+                    datos_por_folio.append([folio_a_consultar, fecha.strftime("%d/%m/%Y"), nota['cliente'], nota['rfc'], nota['correo'], detalle['servicios'], f"${detalle['costo_servicio']:.2f}", f"${nota['monto_a_pagar']:.2f}"])
                 else:
-                    datos_por_folio.append(["", "", "", detalle['servicios'], f"${detalle['costo_servicio']:.2f}", ""])
+                    datos_por_folio.append(["", "", "", "", "", detalle['servicios'], f"${detalle['costo_servicio']:.2f}", ""])
             
             # Muestra la nota en forma de tabla tabular.
-            tabla_por_folio = tabulate(datos_por_folio, headers=["Folio", "Fecha", "Nombre del Cliente", "Servicio(s)", "Costo(s)", "Monto a Pagar"], tablefmt="grid")
+            tabla_por_folio = tabulate(datos_por_folio, headers=["Folio", "Fecha", "Nombre del Cliente", "RFC del Cliente", "Correo del Cliente", "Servicio(s)", "Costo(s)", "Monto a Pagar"], tablefmt="grid")
 
             print("\nREPORTE DE NOTAS POR FOLIO:")
             print(tabla_por_folio)
@@ -245,12 +245,12 @@ def ConsultasReportes():
                 fecha = nota['fecha']
                 monto = nota['monto_a_pagar']
             
-            datos_por_cliente.append([folio, fecha.strftime("%d/%m/%Y"), nota['cliente'], f"${monto:.2f}"])
+            datos_por_cliente.append([folio, fecha.strftime("%d/%m/%Y"), nota['cliente'], nota['correo'], f"${monto:.2f}"])
         
             promedio_monto= sum(nota['monto_a_pagar'] for nota in notas_cliente)/ len(notas_cliente)
         
             print(f"\nReporte de notas para el cliente con RFC{rfc_cliente_consulta}:")
-            tabla_por_cliente= tabulate(datos_por_cliente, headers=["folio","Fecha","Nombre del cliente","Monto a pagar"], tablefmt="grid")
+            tabla_por_cliente= tabulate(datos_por_cliente, headers=["Folio", "Fecha", "Nombre del cliente", "Correo del Cliente", "Monto a pagar"], tablefmt="grid")
             print(tabla_por_cliente)
         
             print(f"\nMonto promedio: ${promedio_monto:.2f}")
@@ -344,6 +344,8 @@ def CancelarNota():
         print(f"\t\tFolio                 : {folio_a_cancelar}")
         print(f"\t\tFecha                 : {fecha}")
         print(f"\t\tNombre del Cliente    : {nota['cliente']}")
+        print(f"\t\tRFC del Cliente       : {nota['rfc']}")
+        print(f"\t\tCorreo del Cliente    : {nota['correo']}")
         print(f"\t\tMonto a Pagar         : ${nota['monto_a_pagar']}")
         print("\t\tServicios:")
         for detalle in nota['detalle']:
@@ -377,10 +379,10 @@ def RecuperarNota():
         for folio, nota in notas_canceladas.items():
             fecha = nota['fecha']
 
-            datos_cancelados.append([folio, fecha.strftime("%d/%m/%Y"), nota['cliente'], f"${nota['monto_a_pagar']:.2f}"])
+            datos_cancelados.append([folio, fecha.strftime("%d/%m/%Y"), nota['cliente'], nota['rfc'], nota['correo'], f"${nota['monto_a_pagar']:.2f}"])
             
         print("\nNOTAS CANCELADAS:")
-        tabla_notas_canceladas = tabulate(datos_cancelados, headers=["Folio", "Fecha", "Nombre del Cliente", "Monto a Pagar"], tablefmt="grid")
+        tabla_notas_canceladas = tabulate(datos_cancelados, headers=["Folio", "Fecha", "Nombre del Cliente", "RFC del Cliente", "Correo del Cliente", "Monto a Pagar"], tablefmt="grid")
         print(tabla_notas_canceladas)
     else:
         print("\n***** No hay notas canceladas hasta el momento. *****")

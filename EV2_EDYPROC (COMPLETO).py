@@ -455,10 +455,10 @@ def SalidaSistema():
         confirmacion_salida = input("\n¿Estas seguro de salir del sistema [SI / NO]? >> ")
         if confirmacion_salida.upper() == "SI":
             print("Gracias por visitar este sistema. ¡Vuelva pronto!\n")
-            break
+            exit()
         elif confirmacion_salida.upper() == "NO":
             print("Volviendo al menú principal...")
-            break
+            return
         else:
             print("**** ¡ERROR! Ingresa una respuesta válida [SI / NO]. ****")
             continue
@@ -511,6 +511,5 @@ while True:
             RecuperarNota()
         elif opcion == 5:
             SalidaSistema()
-            break
         else:
             print("**** Opción no válida. ****")

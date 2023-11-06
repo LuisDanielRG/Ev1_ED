@@ -34,7 +34,7 @@ def Notas():
                         print("[red]*** ¡ERROR! Fecha inválida. Asegurate de seguir el formato dd/mm/yyyy. ***[/red]")
                     else:
                         # Una vez que la fecha se haya convertido, valida que no sea una fecha futura.
-                        if fecha_nota < datetime.date.today():
+                        if fecha_nota <= datetime.date.today():
                             break
                         else:
                             print("[red]*** ¡ERROR! La fecha ingresada es posterior a la fecha actual del sistema, por favor ingrese una fecha válida. ***[/red]")   

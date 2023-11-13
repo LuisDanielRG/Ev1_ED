@@ -1329,7 +1329,7 @@ def Estadisticas():
                                 print("[red]*** ¡ERROR! La fecha final debe ser igual o posterior a la fecha inicial. ***[/red]")
 
                 cursor.execute("SELECT S.Nombre, COUNT(DN.NotaID) AS Cantidad FROM Servicios S INNER JOIN DetalleNotas DN ON S.Clave = DN.ServicioID \
-                               INNER JOIN Notas N ON DN.NotaID = N.Folio WHERE N.Fecha BETWEEN ? AND ? GROUP BY S.Nombre \
+                               INNER JOIN Notas N ON DN.NotaID = N.Folio WHERE N.Estado = 'ACTIVA' AND (N.Fecha BETWEEN ? AND ?) GROUP BY S.Nombre \
                                ORDER BY Cantidad DESC LIMIT ?;", (fecha_inicial, fecha_final, cantidad_servicios))
                 servicios_mas_prestados = cursor.fetchall()
 
@@ -1413,7 +1413,7 @@ def Estadisticas():
                                 print("[red]*** ¡ERROR! La fecha final debe ser igual o posterior a la fecha inicial. ***[/red]")
                 
                 cursor.execute("SELECT C.Nombre, COUNT(N.Folio) AS Cantidad FROM Clientes C INNER JOIN Notas N ON C.Clave = N.ClienteID \
-                               WHERE N.Fecha BETWEEN ? AND ? GROUP BY C.Nombre ORDER BY Cantidad DESC LIMIT ?;", (fecha_inicial, fecha_final, cantidad_clientes))
+                               WHERE N.Estado = 'ACTIVA' AND (N.Fecha BETWEEN ? AND ?) GROUP BY C.Nombre ORDER BY Cantidad DESC LIMIT ?;", (fecha_inicial, fecha_final, cantidad_clientes))
                 clientes_mas_notas = cursor.fetchall()
 
                 if not clientes_mas_notas:
